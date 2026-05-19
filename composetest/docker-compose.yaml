@@ -1,0 +1,19 @@
+# Que es el docker compose?
+# Docker Compose es una herramienta que permite definir y ejecutar aplicaciones Docker de múltiples contenedores.
+#version: "3.9"
+
+services:
+# Primer servicio
+  web:  # Construccion de la imagen
+    build : . # El . para identificar que estamos en la carpeta actual, y el Dockerfile se encuentra en esta carpeta
+    ports:
+      - "5000:5000" # linkeamos el puerto del contenedor con el puerto de la maquina host
+    depends_on:
+      - redis # indicamos que el servicio web depende del servicio redis, esto asegura que redis se inicie antes que web
+    volumes:
+      - .:/code # El . es el directorio actual, y el :/code es el directorio dentro del contenedor donde se montará el volumen. Esto permite que los cambios realizados en el código fuente en la máquina host se reflejen automáticamente dentro del contenedor.
+    environment:
+      FLASK_ENV: development
+
+  redis:
+    image: "redis:alpine" # Usamos una imagen oficial de Redis, no necesitamos un Dockerfile para este servicio
