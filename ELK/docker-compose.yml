@@ -4,14 +4,13 @@
 #archivos entre el host y el contenedor, y tambien nos permite definir las variables de entorno 
 #para configurar los servicios.
 
-version: "3.7"
-
 # DEfiniomos los servicvion
 # ELK: Elasticsearch, Logstash y Kibana, son tres herramientas de código abierto que se utilizan para la gestión y análisis de datos. Elasticsearch es un motor de búsqueda y análisis de datos, Logstash es una herramienta de procesamiento de datos que se utiliza para recopilar, transformar y enviar datos a Elasticsearch, y Kibana es una herramienta de visualización de datos que se utiliza para crear dashboards y gráficos a partir de los datos almacenados en Elasticsearch.
 services:
 
   elasticsearch:
     image: elasticsearch:9.4.1 # Usamos una imagen oficial de Elasticsearch, no necesitamos un Dockerfile para este servicio
+    mem_limit: 1g
     ports:
       - '9200:9200'
     environment:
@@ -24,12 +23,14 @@ services:
         hard: -1
   kibana:
     image: kibana:9.4.1 # Usamos una imagen oficial de Kibana, no necesitamos un Dockerfile para este servicio
+    mem_limit: 512m
     ports:
       - '5601:5601'
     
     
   logstash:
     image: logstash:9.4.1 # Usamos una imagen oficial de Logstash, no necesitamos un Dockerfile para este servicio
+    mem_limit: 768m
     ports:
       - '5044:5044'
     volumes:
@@ -37,3 +38,20 @@ services:
         source: .
         target: /usr/share/logstash/pipeline/ # Montamos el directorio actual en el contenedor, para que Logstash pueda acceder a los archivos de configuración de los pipelines
         read_only: true
+
+  cadvisor:
+    image: ghcr.io/google/cadvisor:0.56.2
+    container_name: cadvisor
+    mem_limit: 256m
+    ports:
+      - '8080:8080'
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    restart: unless-stopped
