@@ -1,0 +1,39 @@
+# Docker compose nos permite levantar varios servivios en un mismo archivo, 
+#y con un solo comando podemos levantar toda la aplicacion, ademas de que nos permite definir 
+#las dependencias entre los servicios, y tambien nos permite definir los volúmenes para compartir 
+#archivos entre el host y el contenedor, y tambien nos permite definir las variables de entorno 
+#para configurar los servicios.
+
+version: "3.7"
+
+# DEfiniomos los servicvion
+# ELK: Elasticsearch, Logstash y Kibana, son tres herramientas de código abierto que se utilizan para la gestión y análisis de datos. Elasticsearch es un motor de búsqueda y análisis de datos, Logstash es una herramienta de procesamiento de datos que se utiliza para recopilar, transformar y enviar datos a Elasticsearch, y Kibana es una herramienta de visualización de datos que se utiliza para crear dashboards y gráficos a partir de los datos almacenados en Elasticsearch.
+services:
+
+  elasticsearch:
+    image: elasticsearch:9.4.1 # Usamos una imagen oficial de Elasticsearch, no necesitamos un Dockerfile para este servicio
+    ports:
+      - '9200:9200'
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  kibana:
+    image: kibana:9.4.1 # Usamos una imagen oficial de Kibana, no necesitamos un Dockerfile para este servicio
+    ports:
+      - '5601:5601'
+    
+    
+  logstash:
+    image: logstash:9.4.1 # Usamos una imagen oficial de Logstash, no necesitamos un Dockerfile para este servicio
+    ports:
+      - '5044:5044'
+    volumes:
+      - type: bind
+        source: .
+        target: /usr/share/logstash/pipeline/ # Montamos el directorio actual en el contenedor, para que Logstash pueda acceder a los archivos de configuración de los pipelines
+        read_only: true
